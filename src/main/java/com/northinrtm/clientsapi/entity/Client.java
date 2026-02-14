@@ -1,6 +1,7 @@
 package com.northinrtm.clientsapi.entity;
 
 import jakarta.persistence.*;
+import java.util.Objects;
 
 @Entity
 @Table(name = "clients")
@@ -9,25 +10,30 @@ public class Client extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "client_id")
-    private Long clientId;
+    private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(name = "last_name", nullable = false)
+    @Column(name = "last_name", nullable = false, length = 100)
     private String lastName;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "contact_id", unique = true)
+    @OneToOne(fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            optional = false)
+    @JoinColumn(name = "contact_id", nullable = false, unique = true)
     private Contact contact;
 
-
-    public Long getClientId() {
-        return clientId;
+    protected Client() {
     }
 
-    public void setClientId(Long clientId) {
-        this.clientId = clientId;
+    public Long getId() {
+        return id;
+    }
+
+    protected void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -53,4 +59,17 @@ public class Client extends BaseEntity {
     public void setContact(Contact contact) {
         this.contact = contact;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Client client)) return false;
+        return id != null && Objects.equals(id, client.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.northinrtm.clientsapi.entity;
 
 import jakarta.persistence.*;
+import java.util.Objects;
 
 @Entity
 @Table(name = "contacts",
@@ -17,22 +18,24 @@ public class Contact extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "contact_id")
-    private Long contactId;
+    private Long id;
 
-    @Column(length = 32)
+    @Column(length = 32, nullable = false)
     private String phone;
 
-    @Column(length = 255)
+    @Column(length = 100, nullable = false)
     private String email;
 
-    public Long getContactId() {
-        return contactId;
+    protected Contact() {
     }
 
-    public void setContactId(Long contactId) {
-        this.contactId = contactId;
+    public Long getId() {
+        return id;
     }
 
+    protected void setId(Long id) {
+        this.id = id;
+    }
 
     public String getPhone() {
         return phone;
@@ -48,5 +51,17 @@ public class Contact extends BaseEntity {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Contact contact)) return false;
+        return id != null && Objects.equals(id, contact.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }
