@@ -6,7 +6,6 @@ import com.northinrtm.clientsapi.dto.ClientUpdateRequest;
 import com.northinrtm.clientsapi.entity.Client;
 import com.northinrtm.clientsapi.exception.NotFoundException;
 import com.northinrtm.clientsapi.mapper.ClientMapper;
-import com.northinrtm.clientsapi.mapper.ContactMapper;
 import com.northinrtm.clientsapi.repository.ClientRepository;
 import com.northinrtm.clientsapi.service.ClientService;
 import org.springframework.data.domain.Page;
@@ -20,12 +19,10 @@ public class ClientServiceImpl implements ClientService {
 
     private final ClientRepository clientRepository;
     private final ClientMapper clientMapper;
-    private final ContactMapper contactMapper;
 
-    public ClientServiceImpl(ClientRepository clientRepository, ClientMapper clientMapper, ContactMapper contactMapper) {
+    public ClientServiceImpl(ClientRepository clientRepository, ClientMapper clientMapper) {
         this.clientRepository = clientRepository;
         this.clientMapper = clientMapper;
-        this.contactMapper = contactMapper;
     }
 
     @Override
@@ -55,10 +52,7 @@ public class ClientServiceImpl implements ClientService {
     public ClientDto update(Long id, ClientUpdateRequest request) {
         Client entity = clientRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Client not found with id: " + id));
-
         clientMapper.update(request, entity);
-        contactMapper.update(request.contact(), entity.getContact());
-
         Client saved = clientRepository.save(entity);
         return clientMapper.toDto(saved);
     }

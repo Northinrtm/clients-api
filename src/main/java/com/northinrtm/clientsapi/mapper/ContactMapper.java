@@ -10,6 +10,7 @@ import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface ContactMapper {
+
     ContactDto toDto(Contact entity);
 
     @Mapping(target = "id", ignore = true)
