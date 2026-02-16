@@ -18,6 +18,11 @@ repositories {
 	mavenCentral()
 }
 
+configurations {
+	create("mockitoAgent")
+}
+
+
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
@@ -31,9 +36,18 @@ dependencies {
 	annotationProcessor("org.mapstruct:mapstruct-processor:1.6.3")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.mockito:mockito-junit-jupiter")
+
+	add("mockitoAgent", "org.mockito:mockito-core:5.18.0")
+
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+
+	doFirst {
+		val jar = configurations["mockitoAgent"].files.first { it.name.startsWith("mockito-core") }
+		jvmArgs("-javaagent:${jar.absolutePath}")
+	}
 }
