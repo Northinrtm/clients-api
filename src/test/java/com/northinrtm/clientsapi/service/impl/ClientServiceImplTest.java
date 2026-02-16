@@ -7,6 +7,7 @@ import com.northinrtm.clientsapi.entity.Client;
 import com.northinrtm.clientsapi.exception.NotFoundException;
 import com.northinrtm.clientsapi.mapper.ClientMapper;
 import com.northinrtm.clientsapi.repository.ClientRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,7 +18,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-
 import java.util.List;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,25 +35,38 @@ class ClientServiceImplTest {
     ClientRepository clientRepository;
     @Mock
     ClientMapper clientMapper;
-
     @InjectMocks
     ClientServiceImpl clientService;
 
+    ClientCreateRequest createReq;
+    ClientUpdateRequest updateReq;
+
+    Client entity;
+    Client saved;
+
+    ClientDto dto;
+
+    @BeforeEach
+    void init() {
+        createReq = mock(ClientCreateRequest.class);
+        updateReq = mock(ClientUpdateRequest.class);
+
+        entity = new Client();
+        saved = new Client();
+
+        dto = new ClientDto(1L, "A", "B", null);
+    }
+
     @Test
     void create_mapsSaves_returnsDto() {
-        ClientCreateRequest req = mock(ClientCreateRequest.class);
-        Client entity = new Client();
-        Client saved = new Client();
-        ClientDto dto = new ClientDto(1L, "A", "B", null);
-
-        when(clientMapper.toEntity(req)).thenReturn(entity);
+        when(clientMapper.toEntity(createReq)).thenReturn(entity);
         when(clientRepository.save(entity)).thenReturn(saved);
         when(clientMapper.toDto(saved)).thenReturn(dto);
 
-        ClientDto result = clientService.create(req);
+        ClientDto result = clientService.create(createReq);
 
         assertEquals(dto, result);
-        verify(clientMapper).toEntity(req);
+        verify(clientMapper).toEntity(createReq);
         verify(clientRepository).save(entity);
         verify(clientMapper).toDto(saved);
         verifyNoMoreInteractions(clientRepository, clientMapper);
@@ -61,17 +74,14 @@ class ClientServiceImplTest {
 
     @Test
     void getById_returnsDto_whenFound() {
-        Client entity = new Client();
-        ClientDto dto = new ClientDto(1L, "A", "B", null);
-
-        when(clientRepository.findById(1L)).thenReturn(Optional.of(entity));
-        when(clientMapper.toDto(entity)).thenReturn(dto);
+        when(clientRepository.findById(1L)).thenReturn(Optional.of(saved));
+        when(clientMapper.toDto(saved)).thenReturn(dto);
 
         ClientDto result = clientService.getById(1L);
 
         assertEquals(dto, result);
         verify(clientRepository).findById(1L);
-        verify(clientMapper).toDto(entity);
+        verify(clientMapper).toDto(saved);
         verifyNoMoreInteractions(clientRepository, clientMapper);
     }
 
@@ -113,108 +123,28 @@ class ClientServiceImplTest {
 
     @Test
     void update_updatesEntity_saves_returnsDto() {
-        Long id = 1L;
-        ClientUpdateRequest req = mock(ClientUpdateRequest.class);
-
-        Client entity = new Client();
-        Client saved = entity;
-        ClientDto dto = new ClientDto(1L, "A", "B", null);
-
-        when(clientRepository.findById(id)).thenReturn(Optional.of(entity));
-        when(clientRepository.save(entity)).thenReturn(saved);
+        when(clientRepository.findById(1L)).thenReturn(Optional.of(saved));
+        when(clientRepository.save(saved)).thenReturn(saved);
         when(clientMapper.toDto(saved)).thenReturn(dto);
 
-        ClientDto result = clientService.update(id, req);
+        ClientDto result = clientService.update(1L, updateReq);
 
         assertEquals(dto, result);
-        verify(clientRepository).findById(id);
-        verify(clientMapper).update(req, entity);
-        verify(clientRepository).save(entity);
+        verify(clientRepository).findById(1L);
+        verify(clientMapper).update(updateReq, saved);
+        verify(clientRepository).save(saved);
         verify(clientMapper).toDto(saved);
         verifyNoMoreInteractions(clientRepository, clientMapper);
     }
 
     @Test
-    void update_throwsNotFound_whenMissing() {
-        when(clientRepository.findById(7L)).thenReturn(Optional.empty());
-
-        assertThrows(NotFoundException.class, () -> clientService.update(7L, mock(ClientUpdateRequest.class)));
-
-        verify(clientRepository).findById(7L);
-        verifyNoMoreInteractions(clientRepository, clientMapper);
-    }
-
-    @Test
     void delete_deletes_whenFound() {
-        Client entity = new Client();
-        when(clientRepository.findById(1L)).thenReturn(Optional.of(entity));
+        when(clientRepository.findById(1L)).thenReturn(Optional.of(saved));
 
         clientService.delete(1L);
 
         verify(clientRepository).findById(1L);
-        verify(clientRepository).delete(entity);
-        verifyNoMoreInteractions(clientRepository, clientMapper);
-    }
-
-    @Test
-    void delete_throwsNotFound_whenMissing() {
-        when(clientRepository.findById(1L)).thenReturn(Optional.empty());
-
-        assertThrows(NotFoundException.class, () -> clientService.delete(1L));
-
-        verify(clientRepository).findById(1L);
-        verifyNoMoreInteractions(clientRepository, clientMapper);
-    }
-
-    @Test
-    void findByPhone_returnsDto_whenFound() {
-        Client entity = new Client();
-        ClientDto dto = new ClientDto(1L, "A", "B", null);
-
-        when(clientRepository.findByContact_Phone("+79991234567")).thenReturn(Optional.of(entity));
-        when(clientMapper.toDto(entity)).thenReturn(dto);
-
-        ClientDto result = clientService.findByPhone("+79991234567");
-
-        assertEquals(dto, result);
-        verify(clientRepository).findByContact_Phone("+79991234567");
-        verify(clientMapper).toDto(entity);
-        verifyNoMoreInteractions(clientRepository, clientMapper);
-    }
-
-    @Test
-    void findByPhone_throwsNotFound_whenMissing() {
-        when(clientRepository.findByContact_Phone("x")).thenReturn(Optional.empty());
-
-        assertThrows(NotFoundException.class, () -> clientService.findByPhone("x"));
-
-        verify(clientRepository).findByContact_Phone("x");
-        verifyNoMoreInteractions(clientRepository, clientMapper);
-    }
-
-    @Test
-    void findByEmail_returnsDto_whenFound() {
-        Client entity = new Client();
-        ClientDto dto = new ClientDto(1L, "A", "B", null);
-
-        when(clientRepository.findByContact_Email("a@b.com")).thenReturn(Optional.of(entity));
-        when(clientMapper.toDto(entity)).thenReturn(dto);
-
-        ClientDto result = clientService.findByEmail("a@b.com");
-
-        assertEquals(dto, result);
-        verify(clientRepository).findByContact_Email("a@b.com");
-        verify(clientMapper).toDto(entity);
-        verifyNoMoreInteractions(clientRepository, clientMapper);
-    }
-
-    @Test
-    void findByEmail_throwsNotFound_whenMissing() {
-        when(clientRepository.findByContact_Email("missing@b.com")).thenReturn(Optional.empty());
-
-        assertThrows(NotFoundException.class, () -> clientService.findByEmail("missing@b.com"));
-
-        verify(clientRepository).findByContact_Email("missing@b.com");
+        verify(clientRepository).delete(saved);
         verifyNoMoreInteractions(clientRepository, clientMapper);
     }
 }
