@@ -1,0 +1,93 @@
+# Clients API
+
+REST API для управления клиентами и их контактными данными (телефон, email).
+
+---
+
+## Технологии
+- Java 21 (Eclipse Temurin)
+- Spring Boot (Web, Validation, Data JPA)
+- PostgreSQL 16
+- MapStruct
+- OpenAPI/Swagger (springdoc)
+- Docker / Docker Compose
+- Unit tests: JUnit 5 + Mockito
+
+---
+
+## Модель данных
+
+### Client
+- `client_id` — идентификатор клиента
+- `name` — имя
+- `last_name` — фамилия
+- `contact_id` — ссылка на контакт (1:1)
+
+### Contact
+- `contact_id` — идентификатор контакта
+- `phone` — телефон (unique)
+- `email` — email (unique)
+
+---
+
+## Архитектурное решение по Contact
+
+В этой реализации **Contact не является самостоятельной сущностью на уровне доменной логики** и **не может существовать без Client**.
+
+Почему так:
+- Контактные данные трактуются как часть профиля клиента.
+- Упрощается жизненный цикл данных: создание/обновление/удаление контакта происходит вместе с клиентом.
+- На уровне JPA это выражено связью **1:1** с `cascade = CascadeType.ALL` и `orphanRemoval = true`, поэтому контакт:
+    - создаётся вместе с клиентом,
+    - обновляется через обновление клиента,
+    - удаляется автоматически при удалении клиента.
+
+> Альтернативный вариант (тоже корректный):
+> - Считать `Client` и `Contact` равнозначными сущностями и реализовать отдельный CRUD для `Contact`.
+> - Если у клиента может быть несколько контактов (несколько телефонов/emails), то логичнее менять связь с **1:N (one-to-many)**:
+    >   - `Client (1) -> Contact (N)`
+>   - в этом случае `Contact` хранит `client_id` как внешний ключ
+>   - эндпоинты для контактов можно делать вложенными (`/api/clients/{id}/contacts`) или отдельными (`/api/contacts`).
+
+---
+
+## Валидация
+
+Используется Bean Validation:
+- `name`, `lastName` — обязательные, max 100 символов
+- `phone` — обязательный, шаблон `\+?[0-9\s-]{7,32}`, max 32 символа
+- `email` — обязательный, валидный email, max 100 символов
+
+---
+
+## Swagger / OpenAPI
+
+В проекте подключен `springdoc-openapi-starter-webmvc-ui`.
+
+После запуска:
+- Swagger UI: `http://localhost:${APP_PORT}/swagger-ui/index.html`
+- OpenAPI JSON: `http://localhost:${APP_PORT}/v3/api-docs`
+
+(по умолчанию `APP_PORT=8080`, см. `.env`)
+
+---
+
+## Запуск через Docker Compose
+
+### 1) Подготовьте `.env`
+
+В репозитории есть файл `.env.example` (пример конфигурации).
+
+Создайте свой `.env`:
+- либо скопируйте `.env.example` → `.env` и при необходимости измените значения,
+- либо создайте `.env` вручную и укажите свои значения.
+
+Минимально необходимые переменные:
+
+```env
+APP_PORT=8080
+
+DB_PORT=5432
+POSTGRES_DB=clients_db
+DB_USER=postgres
+DB_PASSWORD=postgres

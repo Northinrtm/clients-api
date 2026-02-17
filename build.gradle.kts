@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.northinrtm"
-version = "0.0.1-SNAPSHOT"
+version = "1.0.0"
 description = "REST API для управления клиентами и контактами"
 
 java {

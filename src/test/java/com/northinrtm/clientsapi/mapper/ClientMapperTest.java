@@ -23,9 +23,7 @@ class ClientMapperTest {
         clientMapper = new ClientMapperImpl();
         contactMapper = new ContactMapperImpl();
 
-        // поле в ClientMapperImpl (используется в toEntity/toDto)
         inject(clientMapper, ClientMapperImpl.class, "contactMapper", contactMapper);
-        // поле в abstract ClientMapper (используется в afterUpdateContact)
         inject(clientMapper, ClientMapper.class, "contactMapperDelegate", contactMapper);
     }
 
