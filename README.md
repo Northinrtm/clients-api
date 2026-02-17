@@ -91,3 +91,11 @@ DB_PORT=5432
 POSTGRES_DB=clients_db
 DB_USER=postgres
 DB_PASSWORD=postgres
+```
+
+### 2) Запуск приложения
+
+Убедитесь, что в корне проекта рядом с `docker-compose.yml` лежит ваш файл `.env`, затем выполните:
+
+```bash
+docker compose up --build
