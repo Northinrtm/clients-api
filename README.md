@@ -6,7 +6,7 @@ REST API для управления клиентами и их контактн
 
 ## Технологии
 - Java 21 (Eclipse Temurin)
-- Spring Boot (Web, Validation, Data JPA)
+- Spring Boot (Web, Validation, Data JPA, Security)
 - PostgreSQL 16
 - MapStruct
 - OpenAPI/Swagger (springdoc)
